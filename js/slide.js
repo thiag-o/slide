@@ -156,7 +156,7 @@ export class Slide {
   }
 }
 
-export class SlideNav extends Slide {
+export default class SlideNav extends Slide {
 
   constructor(slide,wrapper){
     super(slide,wrapper)
@@ -195,6 +195,7 @@ export class SlideNav extends Slide {
   }
   addControl(customControl){
     this.control = document.querySelector(customControl) || this.createControl();
+    console.log(this.control);
     this.controlArray = [...this.control.children];
     this.activeControlIndex();
     this.controlArray.forEach(this.eventControl);
