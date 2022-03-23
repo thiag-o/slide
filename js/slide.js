@@ -1,4 +1,4 @@
-import debounce from './debounce.js';
+import debounce from "./debounce.js";
 
 export class Slide {
   constructor(slide, wrapper) {
@@ -10,6 +10,7 @@ export class Slide {
       movement: 0,
     };
     this.activeClass = "active";
+    this.changeEvent = new Event('changeEvent');
   }
 
   transiton(active) {
@@ -102,6 +103,7 @@ export class Slide {
     this.slideIndexNav(index);
     this.dis.finalPosition = activeSlide.position;
     this.changeActiveClass();
+    this.wrapper.dispatchEvent(this.changeEvent);
   }
 
   changeActiveClass() {
@@ -127,7 +129,7 @@ export class Slide {
     setTimeout(() => {
       this.slidesConfig();
       this.changeSlide(this.index.active);
-    },1000);
+    }, 1000);
   }
 
   addResizeEvent() {
@@ -140,8 +142,7 @@ export class Slide {
     this.onEnd = this.onEnd.bind(this);
     this.activePrevSlide = this.activePrevSlide.bind(this);
     this.activeNextSlide = this.activeNextSlide.bind(this);
-    this.onResize = debounce(this.onResize.bind(this),200);
-    
+    this.onResize = debounce(this.onResize.bind(this), 200);
   }
 
   init() {
@@ -155,14 +156,54 @@ export class Slide {
   }
 }
 
-export class SlideNav extends Slide{
-  addArrow(prev, next){
+export class SlideNav extends Slide {
+
+  constructor(slide,wrapper){
+    super(slide,wrapper)
+    this.bindControlEvents();
+  }
+  addArrow(prev, next) {
     this.prevElement = document.querySelector(prev);
     this.nextElement = document.querySelector(next);
     this.addArrowEvent();
   }
-  addArrowEvent(){
-    this.prevElement.addEventListener('click',this.activePrevSlide);
-    this.nextElement.addEventListener('click',this.activeNextSlide);
+  addArrowEvent() {
+    this.prevElement.addEventListener("click", this.activePrevSlide);
+    this.nextElement.addEventListener("click", this.activeNextSlide);
   }
+
+  createControl() {
+    const control = document.createElement("ul");
+    control.dataset.control = "slide";
+    this.slideArray.forEach((item,index)=>{
+      control.innerHTML += `<li><a href="#slide${index + 1}"> ${index + 1}</a></li>`
+    })
+    this.wrapper.appendChild(control);
+    return control
+  }
+  eventControl(item, index){
+    item.addEventListener('click', (event)=>{
+      event.preventDefault();
+      this.changeSlide(index)
+      this.activeControlIndex()
+    })
+    this.wrapper.addEventListener("changeEvent",this.activeControlIndex)
+  }
+  activeControlIndex(){
+    this.controlArray.forEach(item => item.classList.remove(this.activeClass))
+    this.controlArray[this.index.active].classList.add(this.activeClass);
+  }
+  addControl(customControl){
+    this.control = document.querySelector(customControl) || this.createControl();
+    this.controlArray = [...this.control.children];
+    this.activeControlIndex();
+    this.controlArray.forEach(this.eventControl);
+
+  }
+  bindControlEvents(){
+    this.eventControl = this.eventControl.bind(this);
+    this.activeControlIndex = this.activeControlIndex.bind(this);
+  }
+
 }
+
